@@ -1,0 +1,38 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<div class="container" layout:fragment="content">
+
+</div>
+
+<script th:inline="javascript" layout:fragment="script">
+    const socket = new SockJS("/ws");
+    const stomp = Stomp.over(socket);
+
+    stomp.connect({}, () => {
+        stomp.subscribe("/topic/process", (msg) => {
+            const p = JSON.parse(msg.body);
+            console.log("실시간 처리됨 (home.html):", p);
+
+            const okSpan = document.querySelector(`#ok-${p.step}`);
+            const ngSpan = document.querySelector(`#ng-${p.step}`);
+            const totalSpan = document.querySelector(`#total-${p.step}`);
+
+            if (p.status === 'OK' && okSpan) okSpan.textContent = parseInt(okSpan.textContent) + 1;
+            if (p.status === 'NG' && ngSpan) ngSpan.textContent = parseInt(ngSpan.textContent) + 1;
+            if (totalSpan) totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
+
+            const tbody = document.querySelector("table tbody");
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>-</td>
+                <td>?</td>
+                <td>${p.lotNumber}</td>
+                <td>${p.step}</td>
+                <td>${p.status}</td>
+                <td>${p.processDate || '-'}</td>
+                <td>${p.errorCode}</td>
+            `;
+            tbody.prepend(tr);
+        });
+    });
+</script>
+</html>

@@ -1,0 +1,33 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<div class="container" layout:fragment="content">
+    <h2 class="py-4 headerTitle">재고 리스트</h2>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>원자재 명</th>
+                <th>수량</th>
+                <th>거래처</th>
+                <th>담당직원</th>
+                <th>입고날짜</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="material : ${materials}">
+                <td th:text="${material.id}"></td>
+                <td th:text="${material.materialName}"></td>
+                <td th:text="${material.materialQuantity}"></td>
+                <td th:text="${material.correspondentName}"></td>
+                <td th:text="${material.employee.loginId}"></td>
+                <td th:text="${#temporals.format(material.materialDate,'yyyy-MM-dd hh-mm')}"></td>
+                <td>
+                    <a href="#" th:href="@{/material/{id}/edit (id=${material.id})}"
+                       class="btn btn-warning" role="button">수정</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</html>

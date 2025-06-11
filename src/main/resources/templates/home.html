@@ -1,0 +1,304 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<div class="container" layout:fragment="content">
+    <div class="container my-5">
+        <h2>부품 발주 예측하기</h2>
+        <p>현재 LSTM모델은 3일치 입력 데이터를 보고 그 이후 3일 뒤 시점의 발주 수량을 예측하도록 학습되었습니다.</p>
+        <form th:object="${request}" method="post">
+            <div class="d-flex align-items-baseline">
+                <div><h3 class="my-5">📥 발주 입력 </h3></div>
+                <div class="mx-md-2 mx-lg-5">
+                    <select class="form-control" id="materialSelect" onchange="syncMaterialName(this.value)" th:field="*{orders[0].materialName}" >
+                        <option value="">원자재를 선택하세요</option>
+                        <option th:each="materialName : ${T(com.example.tint.domain.MaterialName).values()}" th:text="${materialName}" th:value="${materialName}"></option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">예측하기</button>
+            </div>
+            <div class="row">
+                <div class="col-md">
+                    <div class="alert alert-danger" role="alert" th:if="${#fields.hasErrors()}">
+                        <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
+                    </div>
+                    <table id="orderTable" class="table">
+                        <thead>
+                        <tr>
+                            <th>날짜</th>
+                            <th>수량</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td><input class="form-control" type="date" th:field="*{orders[0].date}"></td>
+                            <td><input class="form-control" type="number" th:field="*{orders[0].qty}" ></td>
+                            <input type="hidden" th:field="*{orders[0].materialName}" id="material0">
+                        </tr>
+                        <tr>
+                            <td><input class="form-control" type="date" th:field="*{orders[1].date}"></td>
+                            <td><input class="form-control" type="number" th:field="*{orders[1].qty}"></td>
+                            <input type="hidden" th:field="*{orders[1].materialName}" id="material1">
+                        </tr>
+                        <tr>
+                            <td><input class="form-control" type="date" th:field="*{orders[2].date}"></td>
+                            <td><input class="form-control" type="number" th:field="*{orders[2].qty}"></td>
+                            <input type="hidden" th:field="*{orders[2].materialName}" id="material2">
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md">
+                    <h2 class="mb-5">📊 예측 결과</h2>
+                    <p th:if="${prediction}" th:text="'예측 일자 (D+3) : ' + ${#temporals.format(predictedDate, 'yyyy-MM-dd')} + ' 입니다'"></p>
+                    <p th:if="${predictedDate}" th:text="'예측된 발주 수량 : ' + ${#numbers.formatDecimal(prediction, 1, 2)} + '개 입니다'"></p>
+                </div>
+            </div>
+        </form>
+        <hr>
+        <div class="text-end">
+            <!--        "다시입력" 버튼은 submit이 아닌 GET으로 form을 다시 불러오게 하기-->
+            <form th:action="@{/}" method="get">
+                <button type="submit" class="btn btn-secondary">다시 입력</button>
+            </form>
+        </div>
+        <script>
+            function syncMaterialName(value) {
+                document.getElementById("material0").value = value;
+                document.getElementById("material1").value = value;
+                document.getElementById("material2").value = value;
+            }
+        </script>
+    </div>
+    <h2 class="py-4 headerTitle">
+        공정리스트
+        <span class="fs-4">(주문번호 : <span th:text="${jobOrderId}"></span>)</span>
+    </h2>
+    <div class="row mb-5">
+        <div class="col-md-3">
+            <h4>오늘의 달성률</h4>
+            <p th:text="'today : ' +  ${date}"></p>
+            <canvas id="myChart4"></canvas>
+            <ul>
+                <li>오늘의 제품 : 200</li>
+                <li>완제품 수 : <span  id="productCount" th:text="${productCountDate}"></span></li>
+            </ul>
+        </div>
+        <div class="col-md-3">
+            <h4>제1공정</h4>
+            <canvas id="myChart1"></canvas>
+            <ul>
+                <!--        okCountByStep[1] 여기에서의 1은 key임, 1에 해당하는 값을 가져온다-->
+                <li>정상 : <span id="ok-1" th:text="${okCountByStep[1] ?:0}"></span></li>
+                <li>에러 : <span id="ng-1" th:text="${ngCountByStep[1] ?:0}"></span></li>
+                <li>total : <span th:text="${countByStep[1] ?:0}"></span></li>
+            </ul>
+        </div>
+        <div class="col-md-3">
+            <h4>제2공정</h4>
+            <canvas id="myChart2"></canvas>
+            <ul>
+                <li>정상 : <span id="ok-2" th:text="${okCountByStep[2] ?:0}"></span></li>
+                <li>에러 : <span id="ng-2" th:text="${ngCountByStep[2] ?:0}"></span></li>
+                <li>total : <span id="total-2" th:text="${countByStep[2] ?:0}"></span></li>
+            </ul>
+        </div>
+        <div class="col-md-3">
+            <h4>제3공정</h4>
+            <canvas id="myChart3"></canvas>
+            <ul>
+                <li>정상 : <span id="ok-3" th:text="${okCountByStep[3] ?:0}"></span></li>
+                <li>에러 : <span id="ng-3" th:text="${ngCountByStep[3] ?:0}"></span></li>
+                <li>total : <span id="total-3" th:text="${countByStep[3] ?:0}"></span></li>
+            </ul>
+        </div>
+    </div>
+    <div class="table-responsive mb-5">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>제품명</th>
+                <th>lotNumber</th>
+                <th>공정스텝</th>
+                <th>공정상태</th>
+                <th>공정생성일</th>
+                <th>에러코드</th>
+            </tr>
+            </thead>
+            <tbody id="tbody">
+            <tr th:each="process : ${processes}">
+                <td th:text="${process.id}"></td>
+                <td th:text="${process.jobOrder.productName}"></td>
+                <td th:text="${process.lotNumber}"></td>
+                <td th:text="${process.step}"></td>
+                <td th:text="${process.status}"></td>
+                <td th:text="${#temporals.format(process.processDate,'yyyy-MM-dd hh-mm')}"></td>
+                <td th:text="${process.errorCode}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script th:inline="javascript" layout:fragment="script">
+    /*데이터 가져 오기*/
+    var error1 = /*[[${ngCountByStep[1] ?: 0}]]*/ 0;
+    var ok1 = /*[[${okCountByStep[1] ?: 0}]]*/ 0;
+
+    var error2 = /*[[${ngCountByStep[2] ?: 0}]]*/ 0;
+    var ok2 = /*[[${okCountByStep[2] ?: 0}]]*/ 0;
+
+    var error3 = /*[[${ngCountByStep[3] ?: 0}]]*/ 0;
+    var ok3 = /*[[${okCountByStep[3] ?: 0}]]*/ 0;
+
+    /* Chart.js로 원형 차트 그리기 */
+    function drawChart(ctx, ok, error) {
+        return new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['정상', '에러'],
+                datasets: [{
+                    label: '공정 상태',
+                    data: [ok, error], // OK와 ERROR 개수
+                    backgroundColor: ['#0dcaf0', '#ea868f'], // 하늘(OK), 핑크(ERROR)
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    }
+
+    // 전역 변수로 선언
+    let chart1, chart2, chart3;
+
+    /* 차트 생성 */
+    chart1 = drawChart(document.getElementById('myChart1'), ok1, error1);
+    chart2 = drawChart(document.getElementById('myChart2'), ok2, error2);
+    chart3 = drawChart(document.getElementById('myChart3'), ok3, error3);
+
+    //오늘의 달성률 막대그래프 (수평)
+    const targetToday = 200;
+    let achieved = /*[[${productCountDate}]]*/ 0;
+
+    const chart4 = new Chart(document.getElementById('myChart4'), {
+        type: 'bar',
+        data: {
+            labels: ['달성률'],
+            datasets: [{
+                label: '완제품 수',
+                data: [achieved],
+                backgroundColor: '#0dcaf0',
+                maxBarThickness: 30
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    max: targetToday,
+                    title: {
+                        display: true,
+                        text: `목표: ${targetToday}개`
+                    }
+                },
+                y: {
+                    ticks: { display: false }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `${ctx.parsed.x}개 / ${targetToday}개`
+                    }
+                }
+            }
+        }
+    });
+
+    // lotNumber별 step 상태 누적 저장
+    const lotStepStatusMap = {}; // { lotNumberBase: {1: "OK", 2: "OK", 3: "OK"} }
+
+    //웹소켓, 자동화면업데이트
+    const socket = new SockJS("/ws");
+    const stomp = Stomp.over(socket);
+
+    stomp.connect({}, () => {
+        stomp.subscribe("/topic/process", (msg) => {
+            const p = JSON.parse(msg.body);
+            // 여기서 step, status를 기준으로 동적으로 화면 업데이트
+            console.log("실시간 처리됨:", msg.body);
+            // 예: document.querySelector("#chart").updateChart(p);
+            // {"lotNumber":"PINKTINT_6_010_01_20250516","step":1,"status":"OK","processDate":"2025-05-16T16:26:23.514135300","errorCode":"_","productName":"PINKTINT"}
+
+            // 공정별 카운터 업데이트
+            const step = p.step;
+            const status = p.status;
+            const lotNumber = p.lotNumber;
+
+            // lotNumber에서 base 추출
+            const base = lotNumber.split("_").slice(0, 3).join("_");   //"PINKTINT_33_001"
+            console.log(base)
+            console.log(lotStepStatusMap[base])
+
+            if (!lotStepStatusMap[base]) lotStepStatusMap[base] = {};
+            lotStepStatusMap[base][step] = status;
+
+            // 완제품 판별: step1, 2, 3이 모두 OK일 때만 카운팅
+            const stepStatus = lotStepStatusMap[base];
+            const today = new Date().toISOString().split("T")[0];
+
+            if (
+                p.processDate &&
+                p.processDate.startsWith(today) &&
+                stepStatus[1] === "OK" &&
+                stepStatus[2] === "OK" &&
+                stepStatus[3] === "OK" &&
+                step === 3 // 마지막 공정에서만 처리
+            ) {
+                chart4.data.datasets[0].data[0]++;
+                chart4.update();
+
+                const span = document.getElementById("productCount");
+                if (span) {
+                    span.textContent = parseInt(span.textContent || '0') + 1;
+                }
+            }
+
+
+            // 공정별 카운터 및 테이블
+            const okSpan = document.querySelector(`#ok-${step}`);
+            const ngSpan = document.querySelector(`#ng-${step}`);
+            const totalSpan = document.querySelector(`#total-${step}`);
+
+            if (status === 'OK' && okSpan) okSpan.textContent = parseInt(okSpan.textContent) + 1;
+            if (status === 'NG' && ngSpan) ngSpan.textContent = parseInt(ngSpan.textContent) + 1;
+            if (totalSpan) totalSpan.textContent = parseInt(totalSpan.textContent) + 1;
+
+            // 테이블에 한 줄 추가
+            const tbody = document.querySelector("table #tbody");
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+            <td>-</td>
+            <td>${p.productName}</td>
+            <td>${p.lotNumber}</td>
+            <td>${p.step}</td>
+            <td>${p.status}</td>
+            <td>${p.processDate || '-'}</td>
+            <td>${p.errorCode}</td>
+        `;
+            tbody.prepend(tr);
+
+            //차트 추가
+            const targetChart = step === 1 ? chart1 : step === 2 ? chart2 : chart3;
+            if (targetChart) {
+                if (status === 'OK') targetChart.data.datasets[0].data[0]++;
+                else targetChart.data.datasets[0].data[1]++;
+                targetChart.update();
+            }
+
+
+        });
+    });
+
+
+</script>
+</html>

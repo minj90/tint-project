@@ -1,0 +1,35 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<div class="container" layout:fragment="content">
+  <h2 class="py-4 headerTitle">주문하기</h2>
+  <div class="row">
+    <div class="col-md-6">
+      <form role="form" th:object="${jobOrderForm}" method="post">
+        <div class="alert alert-danger" role="alert" th:if="${#fields.hasErrors()}">
+          <div th:each="err : ${#fields.allErrors()}" th:text="${err}"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label  fw-bold" th:for="*{productName}">생산할 제품</label>
+          <select th:field="*{productName}" class="form-control">
+<!--            <option value="">생산할 제품을 선택하세요</option>-->
+            <option th:each="productName : ${T(com.example.tint.domain.ProductName).values()}" th:value="${productName}" th:text="${productName}"></option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold" th:for="*{orderQuantity}">수량</label>
+          <input class="form-control" th:field="*{orderQuantity}">
+        </div>
+        <div class="text-end">
+          <button type="button"
+                  class="btn btn-secondary btn-sm"
+                  th:onclick="|location.href='@{/order/list}'|">리스트</button>
+          <button type="submit" class="btn btn-warning btn-sm">주문</button>
+
+        </div>
+      </form>
+    </div>
+    <div class="col-md-6 mt-3">
+      <img src="/images/tint.png" class="img-fluid">
+    </div>
+  </div>
+</div>
+</html>

@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Gugi&family=Noto+Sans+KR:wght@400;700&display=swap');
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+h1, h2, h3, h4, h5, .gugi-font {
+    font-family: 'Gugi', sans-serif;
+}
+
+.headerTitle {
+    color: darkgoldenrod;
+}
+
+th, td {
+    white-space: nowrap;  /* 줄 바꿈 방지 */
+    max-width: 300px;     /* 최대 너비 지정 */
+    overflow: hidden;
+    text-overflow: ellipsis; /* 내용이 길면 ... 표시 */
+}
+
+/* 테이블을 감싸는 div의 가로 스크롤 제거 */
+.table-responsive {
+    overflow-x: hidden;
+    color: #ea868f;
+}

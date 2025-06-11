@@ -1,0 +1,33 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<div class="container" layout:fragment="content">
+    <h2 class="py-4 headerTitle">직원 리스트</h2>
+     <div class="table-responsive">
+         <table class="table">
+             <thead>
+             <tr>
+                 <th>#</th>
+                 <th>아이디</th>
+                 <th>이름</th>
+                 <th>비밀번호</th>
+                 <th>직위</th>
+                 <th>연락처</th>
+                 <th></th>
+             </tr>
+             </thead>
+             <tbody>
+             <tr th:each="employee : ${employees}">
+                 <td th:text="${employee.id}"></td>
+                 <td th:text="${employee.loginId}"></td>
+                 <td th:text="${employee.name}"></td>
+                 <td th:text="${employee.password}"></td>
+                 <td th:text="${employee.position}"></td>
+                 <td th:text="${employee.phone}"></td>
+                 <td>
+                     <a href="#" th:href="@{/employee/{id}/edit(id=${employee.id})}" class="btn btn-warning" role="button">수정</a>
+                 </td>
+             </tr>
+             </tbody>
+         </table>
+     </div>
+</div>
+</html>

@@ -1,0 +1,42 @@
+<nav class="container-fluid navbar navbar-expand-lg bg-body-tertiary" th:fragment="navbar">
+    <div class="container">
+        <h3 class="fw-bold py-4"><a th:href="@{/}" class="text-decoration-none text-muted">TINT_FACTORY</a></h3>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item mx-lg-2 my-2 my-lg-0" th:if="${loginMember == null}">
+                    <a class="btn btn-sm btn-secondary" th:href="@{/login}">로그인</a>
+                </li>
+                <li class="nav-item mx-lg-2 my-2 my-lg-0" th:if="${loginMember != null}">
+                    <span th:text="${loginMember.name} + '님 환영합니다.'"></span>
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">로그아웃</button>
+                    </form>
+                </li>
+                <li class="nav-item my-2 my-lg-0">
+                    <a class="btn btn-sm btn-secondary" th:href="@{/employee/new}">직원등록</a>
+                </li>
+                <li class="nav-item mx-lg-2 my-2 my-lg-0">
+                    <a class="btn btn-sm btn-secondary" th:href="@{/employee/list}">직원리스트</a>
+                </li>
+                <li class="nav-item my-2 my-lg-0 d-md-block">
+                    <a class="btn btn-sm btn-warning" th:href="@{/material/new}">재고입력</a>
+                </li>
+                <li class="nav-item mx-lg-2 my-2 my-lg-0">
+                    <a class="btn btn-sm btn-warning" th:href="@{/material/list}">재고확인</a>
+                </li>
+                <li class="nav-item my-2 my-lg-0">
+                    <a class="btn btn-sm btn-info" th:href="@{/order/new}">주문하기</a>
+                </li>
+                <li class="nav-item mx-lg-2 my-2 my-lg-0">
+                    <a class="btn btn-sm btn-info" th:href="@{/order/list}">주문리스트</a>
+                </li>
+                <li class="nav-item my-2 my-lg-0">
+                    <a class="btn btn-sm btn-info" th:href="@{/product/list}">제품리스트</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

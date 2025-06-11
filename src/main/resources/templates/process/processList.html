@@ -1,0 +1,98 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<div class="container" layout:fragment="content">
+  <h2 class="py-4 headerTitle">
+    공정리스트
+    <span class="fs-4">(주문번호 : <span th:text="${jobOrderId}"></span>, 주문수량:<span th:text="${totalCount}"></span>, 완제품 : <span th:text="${productCount}"></span>)</span>
+  </h2>
+  <div class="row mb-5">
+    <div class="col-md-4">
+      <h4>제1공정</h4>
+      <canvas id="myChart1"></canvas>
+      <ul>
+<!--        okCountByStep[1] 여기에서의 1은 key임, 1에 해당하는 값을 가져온다-->
+        <li>정상 : <span th:text="${okCountByStep[1] ?:0}"></span></li>
+        <li>에러 : <span th:text="${ngCountByStep[1] ?:0}"></span></li>
+        <li>total : <span th:text="${countByStep[1] ?:0}"></span></li>
+      </ul>
+    </div>
+    <div class="col-md-4">
+      <h4>제2공정</h4>
+      <canvas id="myChart2"></canvas>
+      <ul>
+        <li>정상 : <span th:text="${okCountByStep[2] ?:0}"></span></li>
+        <li>에러 : <span th:text="${ngCountByStep[2] ?:0}"></span></li>
+        <li>total : <span th:text="${countByStep[2] ?:0}"></span></li>
+      </ul>
+    </div>
+    <div class="col-md-4">
+      <h4>제3공정</h4>
+      <canvas id="myChart3"></canvas>
+      <ul>
+        <li>정상 : <span th:text="${okCountByStep[3] ?:0}"></span></li>
+        <li>에러 : <span th:text="${ngCountByStep[3] ?:0}"></span></li>
+        <li>total : <span th:text="${countByStep[3] ?:0}"></span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="table-responsive mb-5">
+    <table class="table">
+      <thead>
+      <tr>
+        <th>#</th>
+        <th>제품명</th>
+        <th>lotNumber</th>
+        <th>공정스텝</th>
+        <th>공정상태</th>
+        <th>공정생성일</th>
+        <th>에러코드</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="process : ${processes}">
+        <td th:text="${process.id}"></td>
+        <td th:text="${process.jobOrder.productName}"></td>
+        <td th:text="${process.lotNumber}"></td>
+        <td th:text="${process.step}"></td>
+        <td th:text="${process.status}"></td>
+        <td th:text="${#temporals.format(process.processDate,'yyyy-MM-dd hh-mm')}"></td>
+        <td th:text="${process.errorCode}"></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script th:inline="javascript" layout:fragment="script">
+ /*데이터 가져 오기*/
+ var error1 = /*[[${ngCountByStep[1] ?: 0}]]*/ 0;
+ var ok1 = /*[[${okCountByStep[1] ?: 0}]]*/ 0;
+
+ var error2 = /*[[${ngCountByStep[2] ?: 0}]]*/ 0;
+ var ok2 = /*[[${okCountByStep[2] ?: 0}]]*/ 0;
+
+ var error3 = /*[[${ngCountByStep[3] ?: 0}]]*/ 0;
+ var ok3 = /*[[${okCountByStep[3] ?: 0}]]*/ 0;
+
+ /* Chart.js로 원형 차트 그리기 */
+ function drawChart(ctx, ok, error) {
+   new Chart(ctx, {
+     type: 'pie',
+     data: {
+       labels: ['정상', '에러'],
+       datasets: [{
+         label: '공정 상태',
+         data: [ok, error], // OK와 ERROR 개수
+         backgroundColor: ['#0dcaf0', '#ea868f'], // 하늘(OK), 핑크(ERROR)
+       }]
+     },
+     options: {
+       responsive: true
+     }
+   });
+ }
+  /* 차트 생성 */
+  drawChart(document.getElementById('myChart1'), ok1, error1);
+  drawChart(document.getElementById('myChart2'), ok2, error2);
+  drawChart(document.getElementById('myChart3'), ok3, error3);
+</script>
+</html>
+

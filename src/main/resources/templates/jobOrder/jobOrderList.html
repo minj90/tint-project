@@ -1,0 +1,71 @@
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<link rel="stylesheet" href="../../static/css/style.css">
+<div class="container" layout:fragment="content">
+    <h2 class="py-4 headerTitle">주문리스트</h2>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>제품명</th>
+                <th>주문수량</th>
+                <th>담당직원</th>
+                <th>주문날짜</th>
+                <th>공정상태</th>
+                <th>#</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="jobOrder : ${jobOrders}">
+                <td th:text="${jobOrder.id}"></td>
+                <td th:text="${jobOrder.productName}"></td>
+                <td th:text="${jobOrder.orderQuantity}"></td>
+                <td th:text="${jobOrder.employee.loginId}"></td>
+                <td th:text="${#temporals.format(jobOrder.orderDate,'yyyy-MM-dd hh-mm')}"></td>
+                <td th:text="${jobOrder.jobOrderState}"></td>
+                <td class="d-flex">
+                    <form th:action="@{/process/new/{id}(id=${jobOrder.id})}" th:method="post">
+                        <button type="submit"
+                                class="btn btn-sm d-inline"
+                                th:classappend="${jobOrder.jobOrderState.name() == 'COMPLETED'} ? 'btn-secondary' : 'btn-warning'"
+                                th:text="${jobOrder.jobOrderState.name() == 'COMPLETED'} ? '공정완료' : '공정시작'"
+                                th:disabled="${jobOrder.jobOrderState.name() == 'IN_PROGRESS' or jobOrder.jobOrderState.name() == 'COMPLETED'}">
+                        >공정시작</button>
+                    </form>
+                    <button type="button"
+                            class="btn btn-danger btn-sm mx-2 d-inline"
+                            data-bs-toggle="modal"
+                            th:attr="data-bs-target='#exampleModal-' + ${jobOrder.id}"
+                            th:disabled="${jobOrder.jobOrderState.name() == 'IN_PROGRESS' or jobOrder.jobOrderState.name() == 'COMPLETED'}"
+                    >삭제</button>
+                    <div th:if="${jobOrder.jobOrderState.name() == 'IN_PROGRESS' or jobOrder.jobOrderState.name() == 'COMPLETED'}">
+                        <a class="btn btn-success btn-sm" th:href="@{/process/list/{id}(id=${jobOrder.id})}">공정보기</a>
+                    </div>
+                    <!-- Modal -->
+                    <div class="modal fade" th:id="'exampleModal-' + ${jobOrder.id}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">삭제확인</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body" th:text="|정말로 ${jobOrder.productName} 주문을 삭제하시겠습니까?|">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                                    <button type="button"
+                                            class="btn btn-primary"
+                                            th:onclick="|location.href='@{/order/delete/{id}(id=${jobOrder.id})}'|"
+                                    >삭제</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="mb-5"></div>
+</div>
+</html>
