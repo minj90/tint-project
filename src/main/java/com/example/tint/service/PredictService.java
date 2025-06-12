@@ -27,7 +27,7 @@ public class PredictService {
     private final PredictionRecordRepository predictionRecordRepository;
 
 //    예측을 위해 요청을 보낼 Flask API 엔드포인트 URL
-    private final String FLASK_URL = "http://localhost:5000/predict";
+    private final String FLASK_URL = "http://localhost:8000/predict";
 
     public PredictResult getPrediction(PredictRequest request) {
 
