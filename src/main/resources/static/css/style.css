@@ -21,6 +21,7 @@ th, td {
 
 /* 테이블을 감싸는 div의 가로 스크롤 제거 */
 .table-responsive {
-    overflow-x: hidden;
+    overflow-x: auto;
     color: #ea868f;
+    -webkit-overflow-scrolling: touch;
 }
